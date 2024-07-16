@@ -91,7 +91,7 @@ import ScriptingBridge
 
 @objc protocol XcodeSourceDocument: XcodeTextDocument {}
 
-@objc protocol XcodeWorkspaceDocument: XcodeDocument {
+@objc protocol XcodeWorkspaceDocument: XcodeDocument, SBObjectProtocol {
     @objc optional var projects: SBElementArray { get }
     @objc optional var schemes: SBElementArray { get }
     @objc optional var runDestinations: SBElementArray { get }
@@ -209,4 +209,7 @@ extension SBApplication: XcodeApplication {}
 // Example for XcodeDocument
 extension SBObject: XcodeDocument {}
 
+extension SBObject: XcodeWorkspaceDocument {}
+
+extension SBObject : XcodeRunDestination {}
 // Continue this pattern for the rest of the protocols
