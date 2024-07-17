@@ -6,12 +6,16 @@ import SwiftTUI
 struct TerminalView : View {
   var body : some View {
     VStack{
-      Button("Verify Installation") {
-        
+      Button("Run Server") {
+        runDebugger(
+          using: URL(filePath: "/Applications/Xcode-beta.app"),
+          projectPath: "/Users/leo/Documents/Projects/Bitness/Bitness.xcodeproj",
+          schemeName: "bitnessd",
+          runDestinationSpecifier: "platform:macOS, arch:arm64e, id:00008112-00124531223BC01E, name:My Mac")
       }
       
-      Button("Hi World") {
-        
+      Button("Quit") {
+        exit(0)
       }
     }
   }
