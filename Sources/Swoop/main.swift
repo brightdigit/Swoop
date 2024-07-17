@@ -16,7 +16,8 @@ guard let elements = xcode.documents?.get() else {
   exit(1)
 }
 
-let document = xcode.documents?.object(withName: projectURL.lastPathComponent)  as? XcodeWorkspaceDocument
+let document =
+  xcode.documents?.object(withName: projectURL.lastPathComponent) as? XcodeWorkspaceDocument
 
 //guard let bitnessdScheme = document?.schemes?.object(withName: "bitnessd") as? XcodeScheme else {
 //  exit(1)
@@ -31,10 +32,11 @@ for runDestination in runDestinations {
   guard let destination = runDestination as? XcodeRunDestination else {
     exit(1)
   }
-  print(destination.name)
-  dump(destination)
+  //  print(destination.name)
+  //  dump(destination)
 }
 
-
-let result = document.debugScheme?("bitnessd", runDestinationSpecifier: "platform:macOS, arch:arm64e, id:00008112-00124531223BC01E, name:My Mac", skipBuilding: true, commandLineArguments: [], environmentVariables: [])
-/
+let result = document.debugScheme?(
+  "bitnessd",
+  runDestinationSpecifier: "platform:macOS, arch:arm64e, id:00008112-00124531223BC01E, name:My Mac",
+  skipBuilding: true, commandLineArguments: [], environmentVariables: [])
