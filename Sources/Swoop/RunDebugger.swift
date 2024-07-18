@@ -1,7 +1,7 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 import ScriptingBridge
-
+import XcodeCopilot
 func runDebugger(using appURL: URL, projectPath: String, schemeName: String, runDestinationSpecifier: String) {
   guard let application = SBApplication(url: appURL) else {
     exit(1)

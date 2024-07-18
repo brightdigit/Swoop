@@ -19,13 +19,6 @@ $MINT_RUN swift-openapi-generator generate \
 	--additional-import DockerOpenAPITypes \
 	--mode client \
 	OpenAPI/Docker/openapi.yaml
-
-
-$MINT_RUN swift-openapi-generator generate \
-	--output-directory Sources/BitnessOpenAPIServer --access-modifier package \
-	--additional-import DockerOpenAPITypes \
-	--mode server \
-	OpenAPI/Docker/openapi.yaml
 	
 	
 #protoc --swift_opt=Visibility=package --swift_out=Sources/BitnessOpenAPITypes ProtoBuf/*
