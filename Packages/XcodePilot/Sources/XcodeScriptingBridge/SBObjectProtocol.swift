@@ -8,18 +8,18 @@
 import AppKit
 import ScriptingBridge
 
-@objc public protocol SBObjectProtocol: NSObjectProtocol {
+@objc package protocol SBObjectProtocol: NSObjectProtocol {
   func get() -> Any!
 }
 
-@objc public protocol SBApplicationProtocol: SBObjectProtocol {
+@objc package protocol SBApplicationProtocol: SBObjectProtocol {
   func activate()
   var delegate: SBApplicationDelegate! { get set }
   //var running: Bool { @objc(isRunning) get }
 }
 
 // Define the protocols with @objc and optional methods/properties
-@objc public protocol XcodeGenericMethods: AnyObject, SBObjectProtocol {
+@objc package protocol XcodeGenericMethods: AnyObject, SBObjectProtocol {
   @objc optional func closeSaving(_ saving: XcodeSaveOptions, savingIn: URL?)
   @objc optional func delete()
   @objc optional func moveTo(_ to: SBObject)
@@ -37,7 +37,7 @@ import ScriptingBridge
   ) -> XcodeSchemeActionResult
 }
 
-@objc public protocol XcodeApplication: SBApplicationProtocol, XcodeGenericMethods {
+@objc package protocol XcodeApplication: SBApplicationProtocol, XcodeGenericMethods {
   @objc optional var documents: SBElementArray { get }
   @objc optional var windows: SBElementArray { get }
   @objc optional var name: String { get }
@@ -50,13 +50,13 @@ import ScriptingBridge
   @objc optional func createTemporaryDebuggingWorkspace() -> XcodeWorkspaceDocument
 }
 
-@objc public protocol XcodeDocument: XcodeGenericMethods, SBObjectProtocol {
+@objc package protocol XcodeDocument: XcodeGenericMethods, SBObjectProtocol {
   @objc optional var name: String { get }
   @objc optional var modified: Bool { get }
   @objc optional var file: URL { get }
 }
 
-@objc public protocol XcodeWindow: XcodeGenericMethods {
+@objc package protocol XcodeWindow: XcodeGenericMethods {
   @objc optional var name: String { get }
   @objc optional var id: Int { get }
   @objc optional var index: Int { get set }
@@ -71,29 +71,29 @@ import ScriptingBridge
   @objc optional var document: XcodeDocument { get }
 }
 
-@objc public protocol XcodeApplicationSuite: XcodeApplication {
+@objc package protocol XcodeApplicationSuite: XcodeApplication {
   @objc optional var fileDocuments: SBElementArray { get }
   @objc optional var sourceDocuments: SBElementArray { get }
   @objc optional var workspaceDocuments: SBElementArray { get }
   @objc optional var activeWorkspaceDocument: XcodeWorkspaceDocument { get set }
 }
 
-@objc public protocol XcodeDocumentSuite: XcodeDocument {
+@objc package protocol XcodeDocumentSuite: XcodeDocument {
   @objc optional var path: String { get set }
 }
 
-@objc public protocol XcodeFileDocument: XcodeDocumentSuite {}
+@objc package protocol XcodeFileDocument: XcodeDocumentSuite {}
 
-@objc public protocol XcodeTextDocument: XcodeFileDocument {
+@objc package protocol XcodeTextDocument: XcodeFileDocument {
   @objc optional var selectedCharacterRange: [NSNumber] { get set }
   @objc optional var selectedParagraphRange: [NSNumber] { get set }
   @objc optional var text: String { get set }
   @objc optional var notifiesWhenClosing: Bool { get set }
 }
 
-@objc public protocol XcodeSourceDocument: XcodeTextDocument {}
+@objc package protocol XcodeSourceDocument: XcodeTextDocument {}
 
-@objc public protocol XcodeWorkspaceDocument: XcodeDocument, SBObjectProtocol {
+@objc package protocol XcodeWorkspaceDocument: XcodeDocument, SBObjectProtocol {
   @objc optional var projects: SBElementArray { get }
   @objc optional var schemes: SBElementArray { get }
   @objc optional var runDestinations: SBElementArray { get }
@@ -104,7 +104,7 @@ import ScriptingBridge
   @objc optional var file: URL { get }
 }
 
-@objc public protocol XcodeSchemeActionResult: XcodeGenericMethods {
+@objc package protocol XcodeSchemeActionResult: XcodeGenericMethods {
   @objc optional var buildErrors: SBElementArray { get }
   @objc optional var buildWarnings: SBElementArray { get }
   @objc optional var analyzerIssues: SBElementArray { get }
@@ -116,7 +116,7 @@ import ScriptingBridge
   @objc optional var buildLog: String { get set }
 }
 
-@objc public protocol XcodeSchemeActionIssue: XcodeGenericMethods {
+@objc package protocol XcodeSchemeActionIssue: XcodeGenericMethods {
   @objc optional var message: String { get set }
   @objc optional var filePath: String { get set }
   @objc optional var startingLineNumber: Int { get set }
@@ -125,20 +125,20 @@ import ScriptingBridge
   @objc optional var endingColumnNumber: Int { get set }
 }
 
-@objc public protocol XcodeBuildError: XcodeSchemeActionIssue {}
+@objc package protocol XcodeBuildError: XcodeSchemeActionIssue {}
 
-@objc public protocol XcodeBuildWarning: XcodeSchemeActionIssue {}
+@objc package protocol XcodeBuildWarning: XcodeSchemeActionIssue {}
 
-@objc public protocol XcodeAnalyzerIssue: XcodeSchemeActionIssue {}
+@objc package protocol XcodeAnalyzerIssue: XcodeSchemeActionIssue {}
 
-@objc public protocol XcodeTestFailure: XcodeSchemeActionIssue {}
+@objc package protocol XcodeTestFailure: XcodeSchemeActionIssue {}
 
-@objc public protocol XcodeScheme: XcodeGenericMethods {
+@objc package protocol XcodeScheme: XcodeGenericMethods {
   @objc optional var name: String { get }
   @objc optional var id: String { get }
 }
 
-@objc public protocol XcodeRunDestination: XcodeGenericMethods {
+@objc package protocol XcodeRunDestination: XcodeGenericMethods {
   @objc optional var name: String { get }
   @objc optional var architecture: String { get }
   @objc optional var platform: String { get }
@@ -146,7 +146,7 @@ import ScriptingBridge
   @objc optional var companionDevice: XcodeDevice { get }
 }
 
-@objc public protocol XcodeDevice: XcodeGenericMethods {
+@objc package protocol XcodeDevice: XcodeGenericMethods {
   @objc optional var name: String { get }
   @objc optional var deviceIdentifier: String { get }
   @objc optional var operatingSystemVersion: String { get }
@@ -154,44 +154,44 @@ import ScriptingBridge
   @objc optional var generic: Bool { get }
 }
 
-@objc public protocol XcodeBuildConfiguration: XcodeGenericMethods {
+@objc package protocol XcodeBuildConfiguration: XcodeGenericMethods {
   @objc optional var buildSettings: SBElementArray { get }
   @objc optional var resolvedBuildSettings: SBElementArray { get }
   @objc optional var id: String { get }
   @objc optional var name: String { get }
 }
 
-@objc public protocol XcodeProject: XcodeGenericMethods {
+@objc package protocol XcodeProject: XcodeGenericMethods {
   @objc optional var buildConfigurations: SBElementArray { get }
   @objc optional var targets: SBElementArray { get }
   @objc optional var name: String { get }
   @objc optional var id: String { get }
 }
 
-@objc public protocol XcodeBuildSetting: XcodeGenericMethods {
+@objc package protocol XcodeBuildSetting: XcodeGenericMethods {
   @objc optional var name: String { get set }
   @objc optional var value: String { get set }
 }
 
-@objc public protocol XcodeResolvedBuildSetting: XcodeGenericMethods {
+@objc package protocol XcodeResolvedBuildSetting: XcodeGenericMethods {
   @objc optional var name: String { get set }
   @objc optional var value: String { get set }
 }
 
-@objc public protocol XcodeTarget: XcodeGenericMethods {
+@objc package protocol XcodeTarget: XcodeGenericMethods {
   @objc optional var buildConfigurations: SBElementArray { get }
   @objc optional var name: String { get set }
   @objc optional var id: String { get }
   @objc optional var project: XcodeProject { get }
 }
 
-@objc public enum XcodeSaveOptions: Int {
+@objc package enum XcodeSaveOptions: Int {
   case yes  // = 'yes ' // Save the file.
   case no  // = 'no  ' // Do not save the file.
   case ask  // = 'ask ' // Ask the user whether or not to save the file.
 }
 
-@objc public enum XcodeSchemeActionResultStatus: Int {
+@objc package enum XcodeSchemeActionResultStatus: Int {
   case notYetStarted  // = 'srsn' // The action has not yet started.
   case running  // = 'srsr' // The action is in progress.
   case cancelled  // = 'srsc' // The action was cancelled.

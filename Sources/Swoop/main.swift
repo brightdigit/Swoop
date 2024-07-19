@@ -3,6 +3,40 @@
 import Foundation
 import SwiftTUI
 
+import XcodePilot
+
+protocol Command : Sendable {
+  func run () async throws
+}
+
+protocol DependingCommand : Command {
+  var dependencies : [Command] { get }
+  func onDependenciesComplete () async throws
+}
+
+
+struct XcodeDebug : Command {
+  func run() async throws {
+    
+  }
+  
+  
+}
+
+extension DependingCommand {
+  func run() async throws {
+    try await withThrowingTaskGroup(of: Void.self) { group in
+      for dependency in self.dependencies {
+        group.addTask {
+          try await dependency.run()
+        }
+      }
+      
+      try await group.waitForAll()
+    }
+    try await self.onDependenciesComplete()
+  }
+}
 struct TerminalView : View {
   var body : some View {
     VStack{

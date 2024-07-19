@@ -4,21 +4,27 @@
 import PackageDescription
 
 let package = Package(
-    name: "Swoop",
+    name: "XcodePilot",
     platforms: [.macOS(.v13)],
+    products: [
+   .library(
+       name: "XcodePilot",
+       targets: ["XcodePilot"])
+    ],
     dependencies: [
-      .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
-      .package(url: "https://github.com/rensbreur/SwiftTUI", revision: "5371330"),
-      .package(path: "Packages/DockerKit"),
-      .package(path: "Packages/XcodePilot")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
-    
-        .executableTarget(
-            name: "Swoop",
-            dependencies: ["SwiftTUI", "XcodePilot"]
-        ),
+
+      .target(
+          name: "XcodeScriptingBridge"
+          
+      ),
+       
+      .target(
+          name: "XcodePilot",
+          dependencies: ["XcodeScriptingBridge"]
+      ),
     ]
 )
