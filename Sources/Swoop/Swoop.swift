@@ -4,9 +4,65 @@ import ArgumentParser
 
 import Foundation
 
+enum CommandError : Error {
+  case missingInstallation
+}
+
+
 struct ShellOutput {
   let output: String
   let error : String
+}
+
+protocol Command : Sendable {
+  func run () async throws
+}
+
+protocol DependenciesCommand : Command {
+  var dependencies : [Command] { get }
+  func execute() async throws
+}
+
+extension DependenciesCommand {
+  func run() async throws {
+    try await withThrowingTaskGroup(of: Void.self) { group in
+      for dependency in self.dependencies {
+        group.addTask {
+          try await dependency.run()
+        }
+      }
+      try await group.waitForAll()
+    }
+    try await self.execute()
+  }
+}
+
+enum NodeVersionManager : ShellCommand {
+  static let commandName = "nvm"
+  
+  struct Verify : VerifyInstallation {
+    typealias ShellCommandType = NodeVersionManager
+  }
+}
+
+protocol ShellCommand {
+  static var commandName : String { get }
+}
+
+protocol VerifyInstallation : Command {
+  associatedtype ShellCommandType : ShellCommand
+}
+
+extension VerifyInstallation {
+  func run() async throws {
+    do {
+      try await Process.runShellCommand("type", arguments: [Self.ShellCommandType.commandName])
+    } catch let error as TerminationError where error.status == 1 {
+      dump(error)
+      assert(error.output.error == "\(Self.ShellCommandType.commandName) not found")
+      throw CommandError.missingInstallation
+    }
+  }
 }
 
 struct TerminationError : Error {
@@ -32,8 +88,11 @@ struct TerminationError : Error {
 }
 
 
-// Function to run a shell command and capture its output
-  func runShellCommand(_ command: String, arguments: [String] = [], accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
+extension Process {
+  
+  // Function to run a shell command and capture its output
+  @discardableResult
+  static func runShellCommand(_ command: String, arguments: [String] = [], accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
     process.arguments = [command] + arguments
@@ -48,8 +107,6 @@ struct TerminationError : Error {
         try process.run()
       } catch {
         continuation.resume(throwing: error)
-        //        print("Failed to run command: \(error)")
-        //        return (nil, error.localizedDescription)
       }
       
       process.waitUntilExit()
@@ -77,8 +134,10 @@ struct TerminationError : Error {
       }
     }
   }
-  
+}
    
+
+
 
 
 // Example usage: Running 'brew list' to list installed Homebrew packages
@@ -90,20 +149,20 @@ struct Swoop : AsyncParsableCommand {
   
   mutating func run() async throws {
     do {
-      try await runShellCommand("asdf")
-    } catch {
-      dump(error)
+      try await NodeVersionManager.Verify().run()
+    } catch CommandError.missingInstallation {
+      print("nvm is not installed.")
     }
   }
 }
 
 struct Brew {
   func run() async throws {
-    let result = try await runShellCommand("brew", arguments: ["list", "-1", "--full-name"])
-    let lines =  result.output.components(separatedBy: "\n")
-      
-      print(lines.count)
-      print(lines)
+//    let result = try await runShellCommand("brew", arguments: ["list", "-1", "--full-name"])
+//    let lines =  result.output.components(separatedBy: "\n")
+//      
+//      print(lines.count)
+//      print(lines)
     
   }
 }
