@@ -48,7 +48,8 @@ let package = Package(
               "XcodePilot",
               "Yams",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
-            ]
+            ],
+            swiftSettings: swiftSettings
         ),
     ]
 )
