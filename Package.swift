@@ -8,6 +8,7 @@ let package = Package(
     platforms: [.macOS(.v13)],
     dependencies: [
       .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
+      .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3"),
       //.package(url: "https://github.com/rensbreur/SwiftTUI", revision: "5371330"),
       .package(path: "Packages/DockerKit"),
       .package(path: "Packages/XcodePilot")
@@ -18,7 +19,11 @@ let package = Package(
     
         .executableTarget(
             name: "Swoop",
-            dependencies: ["XcodePilot", .product(name: "ArgumentParser", package: "swift-argument-parser")]
+            dependencies: [
+              "XcodePilot",
+              "Yams",
+                .product(name: "ArgumentParser", package: "swift-argument-parser")
+            ]
         ),
     ]
 )
