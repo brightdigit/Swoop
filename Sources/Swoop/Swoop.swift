@@ -40,8 +40,12 @@ extension DependenciesCommand {
 enum NodeVersionManager : ShellCommand {
   static let commandName = "nvm"
   
-  struct Verify : VerifyInstallation {
-    typealias ShellCommandType = NodeVersionManager
+  struct Verify : Command {
+    func run() async throws {
+      guard await checkNVMInstalled() else {
+        throw CommandError.missingInstallation
+      }
+    }
   }
 }
 
@@ -49,9 +53,10 @@ protocol ShellCommand {
   static var commandName : String { get }
 }
 
-protocol VerifyInstallation : Command {
-  associatedtype ShellCommandType : ShellCommand
-}
+//protocol VerifyInstallation : Command {
+//  associatedtype ShellCommandType : ShellCommand
+//}
+
 
 func checkNVMInstalled() async -> Bool {
   
@@ -97,18 +102,18 @@ func checkNVMInstalled() async -> Bool {
     
     return false
 }
-
-extension VerifyInstallation {
-  func run() async throws {
-    do {
-      try await Process.runShellCommand("type", arguments: [Self.ShellCommandType.commandName])
-    } catch let error as TerminationError where error.status == 1 {
-      dump(error)
-      assert(error.output.error == "\(Self.ShellCommandType.commandName) not found")
-      throw CommandError.missingInstallation
-    }
-  }
-}
+//
+//extension VerifyInstallation {
+//  func run() async throws {
+//    do {
+//      try await Process.runShellCommand("type", arguments: [Self.ShellCommandType.commandName])
+//    } catch let error as TerminationError where error.status == 1 {
+//      dump(error)
+//      assert(error.output.error == "\(Self.ShellCommandType.commandName) not found")
+//      throw CommandError.missingInstallation
+//    }
+//  }
+//}
 
 struct TerminationError : Error {
   private init(status: Int, reason: Int, output: ShellOutput) {
@@ -132,6 +137,37 @@ struct TerminationError : Error {
   }
 }
 
+// Function to run an nvm command
+//func runNVMCommand(_ nvmCommand: String) -> (output: String?, error: String?) {
+//    let shellProfile = "~/.zshrc" // Adjust to your specific zsh profile file if necessary
+//    let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
+//    let tempScriptURL = homeDirectory.appendingPathComponent(".run_nvm.sh")
+//    
+//    // Create a temporary script to source the profile and run the nvm command
+//    let script = """
+//    #!/bin/zsh
+//    source \(shellProfile)
+//    \(nvmCommand)
+//    """
+//    
+//    // Write the script to a temporary file
+//    do {
+//        try script.write(to: tempScriptURL, atomically: true, encoding: .utf8)
+//        // Make the script executable
+//        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tempScriptURL.path)
+//    } catch {
+//        print("Failed to write or set permissions for the temporary script: \(error)")
+//        return (nil, error.localizedDescription)
+//    }
+//    
+//    // Run the temporary script
+//  let result = Process.runShellCommand(tempScriptURL.path)
+//    
+//    // Clean up the temporary script
+//    try? FileManager.default.removeItem(at: tempScriptURL)
+//    
+//    return result
+//}
 
 extension Process {
   
