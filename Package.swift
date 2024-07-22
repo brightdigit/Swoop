@@ -3,6 +3,31 @@
 
 import PackageDescription
 
+let swiftSettings: [SwiftSetting] = [
+  SwiftSetting.enableExperimentalFeature("AccessLevelOnImport"),
+  SwiftSetting.enableExperimentalFeature("BitwiseCopyable"),
+  SwiftSetting.enableExperimentalFeature("GlobalActorIsolatedTypesUsability"),
+  SwiftSetting.enableExperimentalFeature("IsolatedAny"),
+  SwiftSetting.enableExperimentalFeature("MoveOnlyPartialConsumption"),
+  SwiftSetting.enableExperimentalFeature("NestedProtocols"),
+  SwiftSetting.enableExperimentalFeature("NoncopyableGenerics"),
+  SwiftSetting.enableExperimentalFeature("RegionBasedIsolation"),
+  SwiftSetting.enableExperimentalFeature("TransferringArgsAndResults"),
+  SwiftSetting.enableExperimentalFeature("VariadicGenerics"),
+  
+  SwiftSetting.enableUpcomingFeature("FullTypedThrows"),
+  SwiftSetting.enableUpcomingFeature("InternalImportsByDefault"),
+  
+  SwiftSetting.unsafeFlags([
+    "-Xfrontend",
+    "-warn-long-function-bodies=100"
+  ]),
+  SwiftSetting.unsafeFlags([
+    "-Xfrontend",
+    "-warn-long-expression-type-checking=100"
+  ])
+]
+
 let package = Package(
     name: "Swoop",
     platforms: [.macOS(.v13)],
@@ -23,7 +48,8 @@ let package = Package(
               "XcodePilot",
               "Yams",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
-            ]
+            ],
+            swiftSettings: swiftSettings
         ),
     ]
 )

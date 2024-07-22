@@ -19,7 +19,7 @@ protocol Command : Sendable {
 }
 
 protocol DependenciesCommand : Command {
-  var dependencies : [Command] { get }
+  var dependencies : [any Command] { get }
   func execute() async throws
 }
 
@@ -51,6 +51,51 @@ protocol ShellCommand {
 
 protocol VerifyInstallation : Command {
   associatedtype ShellCommandType : ShellCommand
+}
+
+func checkNVMInstalled() async -> Bool {
+  
+    let shellProfile = "~/.zshrc" // Adjust to your specific shell profile file if necessary
+    
+    // Create a temporary script to source the profile and check for nvm
+    let script = """
+    #!/bin/zsh
+    source \(shellProfile)
+    command -v nvm
+    """
+    
+    // Write the script to a temporary file
+    let tempScriptURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("check_nvm.sh")
+    do {
+        try script.write(to: tempScriptURL, atomically: true, encoding: .utf8)
+        // Make the script executable
+      try await Process.runShellCommand("chmod", arguments: ["+x", tempScriptURL.path])
+    } catch {
+        print("Failed to write or set permissions for the temporary script: \(error)")
+        return false
+    }
+    
+    // Run the temporary script
+  let result : ShellOutput
+  do {
+    result = try await Process.runShellCommand(executableBasePath: "/bin/zsh", tempScriptURL.path)
+  } catch {
+    dump(error)
+    return false
+  }
+    // Clean up the temporary script
+    try? FileManager.default.removeItem(at: tempScriptURL)
+    
+  if !result.output.isEmpty {
+        print("nvm is installed. Command path:\n\(result.output)")
+        return true
+  } else if !result.error.isEmpty {
+        print("Error checking nvm installation:\n\(result.error)")
+    } else {
+        print("nvm is not installed.")
+    }
+    
+    return false
 }
 
 extension VerifyInstallation {
@@ -92,9 +137,9 @@ extension Process {
   
   // Function to run a shell command and capture its output
   @discardableResult
-  static func runShellCommand(_ command: String, arguments: [String] = [], accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
+  static func runShellCommand(executableBasePath : String = "/usr/bin/env", _ command: String, arguments: [String] = [], accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
+    process.executableURL = URL(fileURLWithPath: executableBasePath)
     process.arguments = [command] + arguments
     
     let outputPipe = Pipe()
@@ -148,11 +193,7 @@ struct Swoop : AsyncParsableCommand {
   
   
   mutating func run() async throws {
-    do {
-      try await NodeVersionManager.Verify().run()
-    } catch CommandError.missingInstallation {
-      print("nvm is not installed.")
-    }
+    await print(checkNVMInstalled())
   }
 }
 

@@ -1,5 +1,6 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
+public import Foundation
 import XcodeScriptingBridge
 import ScriptingBridge
 public func runDebugger(using appURL: URL, projectPath: String, schemeName: String, runDestinationSpecifier: String) {

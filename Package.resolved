@@ -1,5 +1,5 @@
 {
-  "originHash" : "b7b538ef0cceed6ca47362cd815b2eeb5f10bf40aa7dd70c079ebc9e9a3a6cb0",
+  "originHash" : "4cecba2d57264ff49081a0e2d8f606e03414eacfd666b6f6a7f59a32898945f3",
   "pins" : [
     {
       "identity" : "swift-argument-parser",
@@ -29,12 +29,12 @@
       }
     },
     {
-      "identity" : "swifttui",
+      "identity" : "yams",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/rensbreur/SwiftTUI",
+      "location" : "https://github.com/jpsim/Yams.git",
       "state" : {
-        "branch" : "5371330",
-        "revision" : "537133031bc2b2731048d00748c69700e1b48185"
+        "revision" : "3036ba9d69cf1fd04d433527bc339dc0dc75433d",
+        "version" : "5.1.3"
       }
     }
   ],
