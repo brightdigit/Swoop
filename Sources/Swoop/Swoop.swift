@@ -6,7 +6,7 @@ import Foundation
 
 import os.log
 
-struct ShellProfile {
+struct ShellProfile : Codable {
   let interperter: String
   let profilePath: String
 }
@@ -43,8 +43,91 @@ extension DependenciesCommand {
   }
 }
 
+func relativePath(from base: URL, to target: URL) -> String? {
+    let basePathComponents = base.pathComponents
+    let targetPathComponents = target.pathComponents
+    
+    // Find the common path prefix
+    var commonComponentsCount = 0
+    for (baseComponent, targetComponent) in zip(basePathComponents, targetPathComponents) {
+        if baseComponent == targetComponent {
+            commonComponentsCount += 1
+        } else {
+            break
+        }
+    }
+    
+    // Calculate the number of `..` needed
+    let baseUniqueComponentsCount = basePathComponents.count - commonComponentsCount
+    let relativePathComponents = Array(repeating: "..", count: baseUniqueComponentsCount) +
+                                 targetPathComponents[commonComponentsCount...]
+    
+    return NSString.path(withComponents: Array(relativePathComponents))
+}
+
+func createDirectoryIfNotExists(at url: URL) throws {
+    let fileManager = FileManager.default
+    if !fileManager.fileExists(atPath: url.path) {
+        try fileManager.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+    }
+}
+
+enum NodePackageManager {
+  struct RunInstall : Command {
+    let profile : ShellProfile
+    func run() async throws {
+      let command = """
+nvm use
+npm install
+"""
+     try await Process.run(
+        with: profile.interperter,
+        inProfile: profile.profilePath,
+        command: command,
+        currentDirectoryURL: URL(filePath: "Web")
+      )
+    }
+  }
+  
+  struct RunCommand : Command {
+    let profile : ShellProfile
+    
+    func run() async throws {
+      try createDirectoryIfNotExists(at: URL(filePath: ".swoop"))
+      
+      let outputFile = relativePath(from: URL(filePath: "Web"), to: URL(filePath: ".swoop/npm-run.log"))
+      
+      let command = """
+nvm use
+npm run dev > \(outputFile!) 2>&1 &
+echo $!
+"""
+      let output = try await Process.run(
+         with: profile.interperter,
+         inProfile: profile.profilePath,
+         command: command,
+         currentDirectoryURL: URL(filePath: "Web")
+       )
+
+      let pid = output.output.components(separatedBy: .newlines).compactMap{
+        Int($0)
+      }.last
+      
+      try       pid?.description.write(toFile: ".swoop/npm-run.pid", atomically: true, encoding: .utf8)
+    }
+    
+  }
+}
+
 enum NodeVersionManager : ShellCommand {
   static let commandName = "nvm"
+  
+  struct RunInstall : Command {
+    let profile : ShellProfile
+    func run() async throws {
+      try await Process.run(with: profile.interperter, inProfile: profile.profilePath, command: "nvm install", currentDirectoryURL: URL(filePath: "Web"))
+    }
+  }
   
   struct Verify : Command {
     let profile : ShellProfile
@@ -76,83 +159,6 @@ protocol ShellCommand {
   static var commandName : String { get }
 }
 
-//protocol VerifyInstallation : Command {
-//  associatedtype ShellCommandType : ShellCommand
-//}
-
-
-@available(*, deprecated)
-func checkNVMInstalled() async -> Bool {
-  let result : ShellOutput
-  do {
-    result = try await Process.run(with: "/bin/zsh", inProfile: "~/.zshrc", command: "command -v nvm")
-  } catch {
-    dump(error)
-    return false
-  }
-    if !result.output.isEmpty {
-          print("nvm is installed. Command path:\n\(result.output)")
-          return true
-    } else if !result.error.isEmpty {
-          print("Error checking nvm installation:\n\(result.error)")
-      } else {
-          print("nvm is not installed.")
-      }
-  return false
-//    let shellProfile = "~/.zshrc" // Adjust to your specific shell profile file if necessary
-//    
-//    // Create a temporary script to source the profile and check for nvm
-//    let script = """
-//    #!/bin/zsh
-//    source \(shellProfile)
-//    command -v nvm
-//    """
-//    
-//    // Write the script to a temporary file
-//    let tempScriptURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("check_nvm.sh")
-//    do {
-//        try script.write(to: tempScriptURL, atomically: true, encoding: .utf8)
-//        // Make the script executable
-//      try await Process.runShellCommand("chmod", arguments: ["+x", tempScriptURL.path])
-//    } catch {
-//        print("Failed to write or set permissions for the temporary script: \(error)")
-//        return false
-//    }
-//    
-//    // Run the temporary script
-//  let result : ShellOutput
-//  do {
-//    result = try await Process.runShellCommand(executableBasePath: "/bin/zsh", tempScriptURL.path)
-//  } catch {
-//    dump(error)
-//    return false
-//  }
-//    // Clean up the temporary script
-//    try? FileManager.default.removeItem(at: tempScriptURL)
-//    
-//  if !result.output.isEmpty {
-//        print("nvm is installed. Command path:\n\(result.output)")
-//        return true
-//  } else if !result.error.isEmpty {
-//        print("Error checking nvm installation:\n\(result.error)")
-//    } else {
-//        print("nvm is not installed.")
-//    }
-//    
-//    return false
-}
-//
-//extension VerifyInstallation {
-//  func run() async throws {
-//    do {
-//      try await Process.runShellCommand("type", arguments: [Self.ShellCommandType.commandName])
-//    } catch let error as TerminationError where error.status == 1 {
-//      dump(error)
-//      assert(error.output.error == "\(Self.ShellCommandType.commandName) not found")
-//      throw CommandError.missingInstallation
-//    }
-//  }
-//}
 
 struct TerminationError : Error {
   private init(status: Int, reason: Int, output: ShellOutput) {
@@ -210,7 +216,7 @@ struct TerminationError : Error {
 
 extension Process {
   
-  static func run(with interpreter: String, inProfile shellProfile: String, command: String) async throws -> ShellOutput {
+  static func run(with interpreter: String, inProfile shellProfile: String, command: String, currentDirectoryURL: URL? = nil) async throws -> ShellOutput {
     // Adjust to your specific zsh profile file if necessary
     
     let tempName = UUID().uuidString
@@ -234,7 +240,8 @@ extension Process {
     //        }
     
     // Run the temporary script
-    let result = try await Process.runShellCommand(tempScriptURL.path)
+    print(currentDirectoryURL?.standardizedFileURL)
+    let result = try await Process.runShellCommand(tempScriptURL.path, currentDirectoryURL: currentDirectoryURL)
     
     do {
       // Clean up the temporary script
@@ -255,10 +262,11 @@ extension Process {
   
   // Function to run a shell command and capture its output
   @discardableResult
-  static func runShellCommand(executableBasePath : String = "/usr/bin/env", _ command: String, arguments: [String] = [], accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
+  static func runShellCommand(executableBasePath : String = "/usr/bin/env", _ command: String, arguments: [String] = [], currentDirectoryURL: URL? = nil, accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: executableBasePath)
     process.arguments = [command] + arguments
+    process.currentDirectoryURL = currentDirectoryURL
     
     let outputPipe = Pipe()
     let errorPipe = Pipe()
@@ -302,16 +310,35 @@ extension Process {
 
 
 
-
+enum Docker {
+  struct Database : Command {
+    func run() async throws {
+      try await Process.runShellCommand("docker", arguments: ["compose", "up", "db", "-d"])
+    }
+  }
+}
 // Example usage: Running 'brew list' to list installed Homebrew packages
 //let result = runShellCommand("brew", arguments: ["list"])
 
 @main
 struct Swoop : AsyncParsableCommand {
-  
+  let shellProfile : ShellProfile = .init(interperter: "/bin/zsh", profilePath: "~/.zshrc")
   
   mutating func run() async throws {
-    await print(checkNVMInstalled())
+    print("Verifying nvm install...")
+    do {
+      try await NodeVersionManager.Verify(profile: shellProfile).run()
+    } catch CommandError.missingInstallation {
+      print("missing \(NodeVersionManager.commandName)")
+    }
+    print("Running nvm install...")
+    try await NodeVersionManager.RunInstall(profile: shellProfile).run()
+    print("Running npm install...")
+    try await NodePackageManager.RunInstall(profile: shellProfile).run()
+    print("Starting Database...")
+    try await Docker.Database().run()
+    print("Starting Development Web Server...")
+    try await NodePackageManager.RunCommand(profile: shellProfile).run()
   }
 }
 
