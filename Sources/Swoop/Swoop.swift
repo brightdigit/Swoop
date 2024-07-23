@@ -4,6 +4,12 @@ import ArgumentParser
 
 import Foundation
 
+import os.log
+
+struct ShellProfile {
+  let interperter: String
+  let profilePath: String
+}
 enum CommandError : Error {
   case missingInstallation
 }
@@ -41,10 +47,27 @@ enum NodeVersionManager : ShellCommand {
   static let commandName = "nvm"
   
   struct Verify : Command {
+    let profile : ShellProfile
+    
     func run() async throws {
-      guard await checkNVMInstalled() else {
+      let result : ShellOutput
+      result = try await Process.run(
+        with: profile.interperter,
+        inProfile: profile.profilePath,
+        command: "command -v nvm"
+      )
+      guard !result.output.isEmpty else {
         throw CommandError.missingInstallation
       }
+//        if !result.output.isEmpty {
+//              print("nvm is installed. Command path:\n\(result.output)")
+//              return true
+//        } else if !result.error.isEmpty {
+//              print("Error checking nvm installation:\n\(result.error)")
+//          } else {
+//              print("nvm is not installed.")
+//          }
+//      return false
     }
   }
 }
@@ -58,49 +81,65 @@ protocol ShellCommand {
 //}
 
 
+@available(*, deprecated)
 func checkNVMInstalled() async -> Bool {
-  
-    let shellProfile = "~/.zshrc" // Adjust to your specific shell profile file if necessary
-    
-    // Create a temporary script to source the profile and check for nvm
-    let script = """
-    #!/bin/zsh
-    source \(shellProfile)
-    command -v nvm
-    """
-    
-    // Write the script to a temporary file
-    let tempScriptURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("check_nvm.sh")
-    do {
-        try script.write(to: tempScriptURL, atomically: true, encoding: .utf8)
-        // Make the script executable
-      try await Process.runShellCommand("chmod", arguments: ["+x", tempScriptURL.path])
-    } catch {
-        print("Failed to write or set permissions for the temporary script: \(error)")
-        return false
-    }
-    
-    // Run the temporary script
   let result : ShellOutput
   do {
-    result = try await Process.runShellCommand(executableBasePath: "/bin/zsh", tempScriptURL.path)
+    result = try await Process.run(with: "/bin/zsh", inProfile: "~/.zshrc", command: "command -v nvm")
   } catch {
     dump(error)
     return false
   }
-    // Clean up the temporary script
-    try? FileManager.default.removeItem(at: tempScriptURL)
-    
-  if !result.output.isEmpty {
-        print("nvm is installed. Command path:\n\(result.output)")
-        return true
-  } else if !result.error.isEmpty {
-        print("Error checking nvm installation:\n\(result.error)")
-    } else {
-        print("nvm is not installed.")
-    }
-    
-    return false
+    if !result.output.isEmpty {
+          print("nvm is installed. Command path:\n\(result.output)")
+          return true
+    } else if !result.error.isEmpty {
+          print("Error checking nvm installation:\n\(result.error)")
+      } else {
+          print("nvm is not installed.")
+      }
+  return false
+//    let shellProfile = "~/.zshrc" // Adjust to your specific shell profile file if necessary
+//    
+//    // Create a temporary script to source the profile and check for nvm
+//    let script = """
+//    #!/bin/zsh
+//    source \(shellProfile)
+//    command -v nvm
+//    """
+//    
+//    // Write the script to a temporary file
+//    let tempScriptURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("check_nvm.sh")
+//    do {
+//        try script.write(to: tempScriptURL, atomically: true, encoding: .utf8)
+//        // Make the script executable
+//      try await Process.runShellCommand("chmod", arguments: ["+x", tempScriptURL.path])
+//    } catch {
+//        print("Failed to write or set permissions for the temporary script: \(error)")
+//        return false
+//    }
+//    
+//    // Run the temporary script
+//  let result : ShellOutput
+//  do {
+//    result = try await Process.runShellCommand(executableBasePath: "/bin/zsh", tempScriptURL.path)
+//  } catch {
+//    dump(error)
+//    return false
+//  }
+//    // Clean up the temporary script
+//    try? FileManager.default.removeItem(at: tempScriptURL)
+//    
+//  if !result.output.isEmpty {
+//        print("nvm is installed. Command path:\n\(result.output)")
+//        return true
+//  } else if !result.error.isEmpty {
+//        print("Error checking nvm installation:\n\(result.error)")
+//    } else {
+//        print("nvm is not installed.")
+//    }
+//    
+//    return false
 }
 //
 //extension VerifyInstallation {
@@ -171,6 +210,49 @@ struct TerminationError : Error {
 
 extension Process {
   
+  static func run(with interpreter: String, inProfile shellProfile: String, command: String) async throws -> ShellOutput {
+    // Adjust to your specific zsh profile file if necessary
+    
+    let tempName = UUID().uuidString
+    let tempScriptURL = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(tempName)
+    
+    // Create a temporary script to source the profile and run the nvm command
+    let script = """
+        #!\(interpreter)
+        source \(shellProfile)
+        \(command)
+        """
+    
+    // Write the script to a temporary file
+    //do {
+    try script.write(to: tempScriptURL, atomically: true, encoding: .utf8)
+    // Make the script executable
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tempScriptURL.path)
+    //        } catch {
+    //            print("Failed to write or set permissions for the temporary script: \(error)")
+    //            return (nil, error.localizedDescription)
+    //        }
+    
+    // Run the temporary script
+    let result = try await Process.runShellCommand(tempScriptURL.path)
+    
+    do {
+      // Clean up the temporary script
+      try FileManager.default.removeItem(at: tempScriptURL)
+    } catch {
+      Logger(subsystem: "swoop", category: "execute").warning("Unable to delete temporary file.")
+    }
+    
+    return result
+  }
+  
+//  @discardableResult
+//  static func run () async throws -> ShellOutput {
+//    let interpreter = "/bin/zsh"
+//    let command = ""
+//    let shellProfile = "~/.zshrc" return try run(interpreter, shellProfile, command)
+//  }
+  
   // Function to run a shell command and capture its output
   @discardableResult
   static func runShellCommand(executableBasePath : String = "/usr/bin/env", _ command: String, arguments: [String] = [], accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
@@ -192,8 +274,8 @@ extension Process {
       
       process.waitUntilExit()
       
-      print(process.terminationReason.rawValue)
-      print(process.terminationStatus)
+//      print(process.terminationReason.rawValue)
+//      print(process.terminationStatus)
       
       let outputData = outputPipe.fileHandleForReading.readDataToEndOfFile()
       let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
