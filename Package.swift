@@ -47,8 +47,7 @@ let package = Package(
         .executableTarget(
             name: "Swoop",
             dependencies: [
-              "XcodePilot",
-              
+              "XcodePilot",              
               "Yams",
               .product(name: "ArgumentParser", package: "swift-argument-parser"),
               .product(name: "MintKit", package: "Mint"),
