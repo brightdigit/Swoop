@@ -3,12 +3,40 @@
 
 import PackageDescription
 
+let swiftSettings: [SwiftSetting] = [
+  SwiftSetting.enableExperimentalFeature("AccessLevelOnImport"),
+  SwiftSetting.enableExperimentalFeature("BitwiseCopyable"),
+  SwiftSetting.enableExperimentalFeature("GlobalActorIsolatedTypesUsability"),
+  SwiftSetting.enableExperimentalFeature("IsolatedAny"),
+  SwiftSetting.enableExperimentalFeature("MoveOnlyPartialConsumption"),
+  SwiftSetting.enableExperimentalFeature("NestedProtocols"),
+  SwiftSetting.enableExperimentalFeature("NoncopyableGenerics"),
+  SwiftSetting.enableExperimentalFeature("RegionBasedIsolation"),
+  SwiftSetting.enableExperimentalFeature("TransferringArgsAndResults"),
+  SwiftSetting.enableExperimentalFeature("VariadicGenerics"),
+  
+  SwiftSetting.enableUpcomingFeature("FullTypedThrows"),
+  SwiftSetting.enableUpcomingFeature("InternalImportsByDefault"),
+  
+  SwiftSetting.unsafeFlags([
+    "-Xfrontend",
+    "-warn-long-function-bodies=100"
+  ]),
+  SwiftSetting.unsafeFlags([
+    "-Xfrontend",
+    "-warn-long-expression-type-checking=100"
+  ])
+]
+
 let package = Package(
     name: "Swoop",
     platforms: [.macOS(.v13)],
     dependencies: [
       .package(url: "https://github.com/apple/swift-argument-parser", from: "1.5.0"),
-      .package(url: "https://github.com/rensbreur/SwiftTUI", revision: "5371330"),
+      .package(url: "https://github.com/jpsim/Yams.git", from: "5.1.3"),
+      .package(url: "https://github.com/yonaskolb/Mint.git", from: "0.15.0"),
+      .package(url: "https://github.com/yonaskolb/XcodeGen.git", from: "2.42.0"),
+      //.package(url: "https://github.com/rensbreur/SwiftTUI", revision: "5371330"),
       .package(path: "Packages/DockerKit"),
       .package(path: "Packages/XcodePilot")
     ],
@@ -18,7 +46,14 @@ let package = Package(
     
         .executableTarget(
             name: "Swoop",
-            dependencies: ["SwiftTUI", "XcodePilot"]
+            dependencies: [
+              "XcodePilot",              
+              "Yams",
+              .product(name: "ArgumentParser", package: "swift-argument-parser"),
+              .product(name: "MintKit", package: "Mint"),
+              .product(name: "XcodeGenKit", package: "XcodeGen")
+            ],
+            swiftSettings: swiftSettings
         ),
     ]
 )

@@ -5,8 +5,8 @@
 //  Created by Leo Dion on 7/16/24.
 //
 
-import AppKit
-import ScriptingBridge
+
+package import ScriptingBridge
 
 @objc package protocol SBObjectProtocol: NSObjectProtocol {
   func get() -> Any!
@@ -14,7 +14,7 @@ import ScriptingBridge
 
 @objc package protocol SBApplicationProtocol: SBObjectProtocol {
   func activate()
-  var delegate: SBApplicationDelegate! { get set }
+  var delegate: (any SBApplicationDelegate)! { get set }
   //var running: Bool { @objc(isRunning) get }
 }
 
@@ -23,18 +23,18 @@ import ScriptingBridge
   @objc optional func closeSaving(_ saving: XcodeSaveOptions, savingIn: URL?)
   @objc optional func delete()
   @objc optional func moveTo(_ to: SBObject)
-  @objc optional func build() -> XcodeSchemeActionResult
-  @objc optional func clean() -> XcodeSchemeActionResult
+  @objc optional func build() -> any XcodeSchemeActionResult
+  @objc optional func clean() -> any XcodeSchemeActionResult
   @objc optional func stop()
   @objc optional func run(withCommandLineArguments: Any, withEnvironmentVariables: Any)
-    -> XcodeSchemeActionResult
+  -> any XcodeSchemeActionResult
   @objc optional func test(withCommandLineArguments: Any, withEnvironmentVariables: Any)
-    -> XcodeSchemeActionResult
+  -> any XcodeSchemeActionResult
   @objc optional func attachToProcessIdentifier(_ toProcessIdentifier: Int, suspended: Bool)
   @objc optional func debugScheme(
     _ scheme: String, runDestinationSpecifier: String, skipBuilding: Bool,
     commandLineArguments: Any, environmentVariables: Any
-  ) -> XcodeSchemeActionResult
+  ) -> any XcodeSchemeActionResult
 }
 
 @objc package protocol XcodeApplication: SBApplicationProtocol, XcodeGenericMethods {
@@ -47,7 +47,7 @@ import ScriptingBridge
   @objc optional func open(_ x: Any) -> Any
   @objc optional func quitSaving(_ saving: XcodeSaveOptions)
   @objc optional func exists(_ x: Any) -> Bool
-  @objc optional func createTemporaryDebuggingWorkspace() -> XcodeWorkspaceDocument
+  @objc optional func createTemporaryDebuggingWorkspace() -> any XcodeWorkspaceDocument
 }
 
 @objc package protocol XcodeDocument: XcodeGenericMethods, SBObjectProtocol {
@@ -68,14 +68,14 @@ import ScriptingBridge
   @objc optional var visible: Bool { get set }
   @objc optional var zoomable: Bool { get }
   @objc optional var zoomed: Bool { get set }
-  @objc optional var document: XcodeDocument { get }
+  @objc optional var document: any XcodeDocument { get }
 }
 
 @objc package protocol XcodeApplicationSuite: XcodeApplication {
   @objc optional var fileDocuments: SBElementArray { get }
   @objc optional var sourceDocuments: SBElementArray { get }
   @objc optional var workspaceDocuments: SBElementArray { get }
-  @objc optional var activeWorkspaceDocument: XcodeWorkspaceDocument { get set }
+  @objc optional var activeWorkspaceDocument: any XcodeWorkspaceDocument { get set }
 }
 
 @objc package protocol XcodeDocumentSuite: XcodeDocument {
@@ -98,9 +98,9 @@ import ScriptingBridge
   @objc optional var schemes: SBElementArray { get }
   @objc optional var runDestinations: SBElementArray { get }
   @objc optional var loaded: Bool { get set }
-  @objc optional var activeScheme: XcodeScheme { get set }
-  @objc optional var activeRunDestination: XcodeRunDestination { get set }
-  @objc optional var lastSchemeActionResult: XcodeSchemeActionResult { get set }
+  @objc optional var activeScheme: any XcodeScheme { get set }
+  @objc optional var activeRunDestination: any XcodeRunDestination { get set }
+  @objc optional var lastSchemeActionResult: any XcodeSchemeActionResult { get set }
   @objc optional var file: URL { get }
 }
 
@@ -142,8 +142,8 @@ import ScriptingBridge
   @objc optional var name: String { get }
   @objc optional var architecture: String { get }
   @objc optional var platform: String { get }
-  @objc optional var device: XcodeDevice { get }
-  @objc optional var companionDevice: XcodeDevice { get }
+  @objc optional var device: any XcodeDevice { get }
+  @objc optional var companionDevice: any XcodeDevice { get }
 }
 
 @objc package protocol XcodeDevice: XcodeGenericMethods {
@@ -182,7 +182,7 @@ import ScriptingBridge
   @objc optional var buildConfigurations: SBElementArray { get }
   @objc optional var name: String { get set }
   @objc optional var id: String { get }
-  @objc optional var project: XcodeProject { get }
+  @objc optional var project: any XcodeProject { get }
 }
 
 @objc package enum XcodeSaveOptions: Int {
