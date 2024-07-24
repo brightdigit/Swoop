@@ -35,6 +35,23 @@ public struct XcodeWorkspaceDocument : Sendable {
       throw PilotError.cannotFindScheme(scheme)
     }.value
     
+    let runDestinations = document.runDestinations?.compactMap({
+      $0 as? SBObject
+    }).map{
+      $0 as XcodeRunDestination
+    }
+    
+    if let runDestinations {
+      
+      for runDestination in runDestinations {
+        print(runDestination.name)
+        //print(runDestination.id)
+        print(runDestination.architecture)
+        print(runDestination.companionDevice?.deviceIdentifier)
+        print(runDestination.device?.deviceIdentifier)
+        print(runDestination.platform)
+      }
+    }
     print("Scheme found.")
     dump(scheme)
     let result = self.document.debugScheme?(

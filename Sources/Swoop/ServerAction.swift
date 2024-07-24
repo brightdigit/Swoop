@@ -152,6 +152,6 @@ struct ServerAction : ListAction {
     }
     let swiftPackageURL = URL(filePath: "Bitness.xcodeproj")
     let workspace = try await application.openWorkspaceDocument(at: swiftPackageURL)
-    try await workspace.debug(scheme: "bitnessd", runDestinationSpecifier: "platform:macOS, name:My Mac")
+    try await workspace.debug(scheme: "bitnessd", runDestinationSpecifier: "platform:macOS, arch:arm64e, id:00008112-00124531223BC01E, name:My Mac")
   }
 }
