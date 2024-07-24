@@ -17,7 +17,7 @@ npm install
     }
   }
   
-  struct RunCommand : Command {
+  struct RunCommand : Action {
     let profile : ShellProfile
     
     func run() async throws {

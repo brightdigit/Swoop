@@ -51,7 +51,7 @@ let package = Package(
               "Yams",
               .product(name: "ArgumentParser", package: "swift-argument-parser"),
               .product(name: "MintKit", package: "Mint"),
-              .product(name: "XcodeGenKit", package: "XcodeGen")
+              .product(name: "ProjectSpec", package: "XcodeGen")
             ],
             swiftSettings: swiftSettings
         ),
