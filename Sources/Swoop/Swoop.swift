@@ -2,7 +2,7 @@ import ArgumentParser
 
 @main
 struct Swoop : AsyncParsableCommand {
-  let shellProfile : ShellProfile = .init(interperter: "/bin/zsh", profilePath: "~/.zshrc")
+  let shellProfile : ShellProfile = .init(interperter: "/bin/zsh", profilePath: "~/.zprofile")
   
   mutating func run() async throws {
     let action = ServerAction(shellProfile: shellProfile)
