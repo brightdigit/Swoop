@@ -11,7 +11,7 @@ import XcodeProj
 import Version
 import XcodeGenKit
 import XcodePilot
-
+import ProcessExtensions
 
 struct XcodeGenAction : Action {
   func run() async throws {
@@ -147,11 +147,18 @@ struct ServerAction : ListAction {
   
 
   func execute() async throws {
+    
     guard let application = XcodeApp(filePath: "/Applications/Xcode-beta.app") else {
       throw InternalError.missingEnvironmentVariable("/Applications/Xcode-beta.app")
     }
     let swiftPackageURL = URL(filePath: "Bitness.xcodeproj")
     let workspace = try await application.openWorkspaceDocument(at: swiftPackageURL)
-    try await workspace.debug(scheme: "bitnessd", runDestinationSpecifier: "platform:macOS, arch:arm64e, id:00008112-00124531223BC01E, name:My Mac")
+    try await workspace.debug(
+      scheme: "bitnessd",
+      
+      runDestination: .init(arch: "arm64e", platform: "macOS")
+    )
+    
+    print("Running Server...")
   }
 }

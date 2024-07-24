@@ -38,6 +38,7 @@ let package = Package(
       targets: ["XcodePilot"])
   ],
   dependencies: [
+    .package(path: "../ProcessExtensions")
   ],
   targets: [
     // Targets are the basic building blocks of a package, defining a module or a test suite.
@@ -51,7 +52,7 @@ let package = Package(
     
       .target(
         name: "XcodePilot",
-        dependencies: ["XcodeScriptingBridge"],
+        dependencies: ["XcodeScriptingBridge", "ProcessExtensions"],
         swiftSettings: swiftSettings
       ),
   ]

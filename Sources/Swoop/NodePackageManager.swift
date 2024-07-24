@@ -1,9 +1,20 @@
 import Foundation
+import ProcessExtensions
 
 enum NodePackageManager {
-  struct RunInstall : Action {
+  struct RunInstall : ListAction {
     let profile : ShellProfile
-    func run() async throws {
+    let dependencies: [any Action]
+    
+    init(profile: ShellProfile) {
+      self.profile = profile
+      self.dependencies = [
+        // NodeVersionManager.RunInstall(profile: profile)
+      ]
+    }
+    
+    func execute() async throws {
+      print("Running npm Install...")
       let command = """
 nvm use
 npm install
@@ -21,6 +32,7 @@ npm install
     let profile : ShellProfile
     
     func run() async throws {
+      print("Running npm run dev...")
       try createDirectoryIfNotExists(at: URL(filePath: ".swoop"))
       
       let outputFile = relativePath(from: URL(filePath: "Web"), to: URL(filePath: ".swoop/npm-run.log"))

@@ -1,9 +1,9 @@
-import Foundation
+public import Foundation
 import os.log
 
 extension Process {
   
-  static func run(with interpreter: String, inProfile shellProfile: String, command: String, currentDirectoryURL: URL? = nil) async throws -> ShellOutput {
+  public static func run(with interpreter: String, inProfile shellProfile: String, command: String, currentDirectoryURL: URL? = nil) async throws -> ShellOutput {
     // Adjust to your specific zsh profile file if necessary
     
     let tempName = UUID().uuidString
@@ -30,12 +30,30 @@ extension Process {
     return result
   }
   
+  public static func execute(
+    _ executable: String,
+    arguments: [String] = [],
+    currentDirectoryURL: URL? = nil,
+    _ accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}
+  ) async throws -> ShellOutput {
+    try await self.execute(
+      .init(filePath: executable),
+      arguments: arguments,
+      currentDirectoryURL: currentDirectoryURL,
+      accceptableStatus
+    )
+  }
+  
   // Function to run a shell command and capture its output
-  @discardableResult
-  static func runShellCommand(executableBasePath : String = "/usr/bin/env", _ command: String, arguments: [String] = [], currentDirectoryURL: URL? = nil, accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
+  public static func execute(
+    _ executableURL: URL,
+    arguments: [String] = [],
+    currentDirectoryURL: URL? = nil,
+    _ accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}
+  ) async throws -> ShellOutput {
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: executableBasePath)
-    process.arguments = [command] + arguments
+    process.executableURL = executableURL
+    process.arguments = arguments
     process.currentDirectoryURL = currentDirectoryURL
     
     let outputPipe = Pipe()
@@ -72,5 +90,15 @@ extension Process {
         continuation.resume(returning: output)
       }
     }
+  }
+  
+  @discardableResult
+  public static func runShellCommand(executableBasePath : String = "/usr/bin/env", _ command: String, arguments: [String] = [], currentDirectoryURL: URL? = nil, accceptableStatus: @Sendable @escaping (Int) -> Bool = {$0 == 0}) async throws -> ShellOutput {
+    return try await execute(
+      executableBasePath,
+      arguments:  [command] + arguments,
+      currentDirectoryURL: currentDirectoryURL,
+      accceptableStatus
+    )
   }
 }

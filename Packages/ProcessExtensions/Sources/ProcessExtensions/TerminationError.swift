@@ -1,15 +1,15 @@
 
 
-struct TerminationError : Error {
+public struct TerminationError : Error {
   private init(status: Int, reason: Int, output: ShellOutput) {
     self.status = status
     self.reason = reason
     self.output = output
   }
   
-  let status : Int
-  let reason : Int
-  let output: ShellOutput
+  public let status : Int
+  public let reason : Int
+  public let output: ShellOutput
   
   init?(status: Int, reason: Int, output: ShellOutput, accceptableStatus: @Sendable @escaping (Int) -> Bool) {
     let statusFailed = accceptableStatus(status)
