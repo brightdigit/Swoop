@@ -22,7 +22,7 @@ enum NodeVersionManager {
         command: "command -v nvm"
       )
       guard !result.output.isEmpty else {
-        throw CommandError.missingInstallation
+        throw ActionError.missingInstallation
       }
     }
   }

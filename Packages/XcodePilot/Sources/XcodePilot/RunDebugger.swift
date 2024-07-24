@@ -17,7 +17,7 @@ public func runDebugger(using appURL: URL, projectPath: String, schemeName: Stri
   }
   
   let document =
-  xcode.documents?.object(withName: projectURL.lastPathComponent) as? XcodeWorkspaceDocument
+  xcode.documents?.object(withName: projectURL.lastPathComponent) as? XcodeScriptingBridge.XcodeWorkspaceDocument
   
   //guard let bitnessdScheme = document?.schemes?.object(withName: "bitnessd") as? XcodeScheme else {
   //  exit(1)

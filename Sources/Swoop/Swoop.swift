@@ -5,6 +5,15 @@ struct Swoop : AsyncParsableCommand {
   let shellProfile : ShellProfile = .init(interperter: "/bin/zsh", profilePath: "~/.zshrc")
   
   mutating func run() async throws {
+    let action = ServerAction(shellProfile: shellProfile)
+    try await action.run()
+  }
+}
+
+
+struct Web : Action {
+  let shellProfile : ShellProfile
+  func run() async throws {
     print("Verifying nvm install...")
     do {
       try await NodeVersionManager.Verify(profile: shellProfile).run()
@@ -16,7 +25,7 @@ struct Swoop : AsyncParsableCommand {
     print("Running npm install...")
     try await NodePackageManager.RunInstall(profile: shellProfile).run()
     print("Starting Database...")
-    try await Docker.Database().run()
+    try await Docker.Database(shellProfile: shellProfile).run()
     print("Starting Development Web Server...")
     try await NodePackageManager.RunCommand(profile: shellProfile).run()
   }

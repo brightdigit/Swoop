@@ -10,15 +10,8 @@ import PathKit
 import XcodeProj
 import Version
 import XcodeGenKit
+import XcodePilot
 
-struct XcodeWorkspaceDocument {
-  
-}
-struct XcodeApplication {
-  func openWorkspaceDocument (at url: URL) async throws -> XcodeWorkspaceDocument {
-    
-  }
-}
 
 struct XcodeGenAction : Action {
   func run() async throws {
@@ -27,8 +20,8 @@ struct XcodeGenAction : Action {
     let project: Project
     
     let variables: [String: String] = ProcessInfo.processInfo.environment
-    let projectSpecPath : Path = "project.yaml"
-
+    let projectSpecPath : Path = "project.yml"
+    
     project = try specLoader.loadProject(path: projectSpecPath, projectRoot: nil, variables: variables)
 
     let projectDirectory = projectSpecPath.parent()
@@ -103,9 +96,7 @@ struct XcodeGenAction : Action {
     //do {
         let projectGenerator = ProjectGenerator(project: project)
 
-        guard let userName = ProcessInfo.processInfo.environment["LOGNAME"] else {
-          throw InternalError.missingEnvironmentVariable("LOGNAME")
-        }
+    let userName = ProcessInfo.processInfo.userName
 
         xcodeProject = try projectGenerator.generateXcodeProject(in: projectDirectory, userName: userName)
         
@@ -143,13 +134,24 @@ struct XcodeGenAction : Action {
   
 }
 struct ServerAction : ListAction {
-  var dependencies: [any Action] = [
-    XcodeGenAction(),
-    Docker.Database()
-  ]
+  let shellProfile : ShellProfile
+  let dependencies: [any Action]
+  
+  init(shellProfile: ShellProfile) {
+    self.shellProfile = shellProfile
+    self.dependencies = [
+      XcodeGenAction(),
+      Docker.Database(shellProfile: self.shellProfile)
+    ]
+  }
+  
+
   func execute() async throws {
-    let application = XcodeApplication()
+    guard let application = XcodeApp(filePath: "/Applications/Xcode-beta.app") else {
+      throw InternalError.missingEnvironmentVariable("/Applications/Xcode-beta.app")
+    }
     let swiftPackageURL = URL(filePath: "Bitness.xcodeproj")
-    try await application.openWorkspaceDocument(at: swiftPackageURL)
+    let workspace = try await application.openWorkspaceDocument(at: swiftPackageURL)
+    try await workspace.debug(scheme: "bitnessd", runDestinationSpecifier: "platform:macOS, name:My Mac")
   }
 }

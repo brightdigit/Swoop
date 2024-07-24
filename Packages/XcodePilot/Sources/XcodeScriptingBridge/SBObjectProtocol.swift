@@ -215,3 +215,6 @@ extension SBObject: XcodeWorkspaceDocument {}
 
 extension SBObject: XcodeRunDestination {}
 // Continue this pattern for the rest of the protocols
+extension SBObject : XcodeScheme {}
+
+extension SBObject : XcodeSchemeActionResult {}
