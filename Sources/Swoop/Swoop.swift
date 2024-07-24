@@ -8,7 +8,7 @@ struct Swoop : AsyncParsableCommand {
     print("Verifying nvm install...")
     do {
       try await NodeVersionManager.Verify(profile: shellProfile).run()
-    } catch CommandError.missingInstallation {
+    } catch  ActionError.missingInstallation {
       print("missing \(NodeVersionManager.commandName)")
     }
     print("Running nvm install...")

@@ -1,11 +1,10 @@
 
-@available(*, deprecated, message: "Switch to List")
-protocol DependenciesCommand : Command {
-  var dependencies : [any Command] { get }
+protocol ListAction : Action {
+  var dependencies : [any Action] { get }
   func execute() async throws
 }
 
-extension DependenciesCommand {
+extension ListAction {
   func run() async throws {
     try await withThrowingTaskGroup(of: Void.self) { group in
       for dependency in self.dependencies {

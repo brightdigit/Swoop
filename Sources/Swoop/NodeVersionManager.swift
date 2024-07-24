@@ -4,14 +4,14 @@ import Foundation
 enum NodeVersionManager {
   static let commandName = "nvm"
   
-  struct RunInstall : Command {
+  struct RunInstall : Action {
     let profile : ShellProfile
     func run() async throws {
       try await Process.run(with: profile.interperter, inProfile: profile.profilePath, command: "nvm install", currentDirectoryURL: URL(filePath: "Web"))
     }
   }
   
-  struct Verify : Command {
+  struct Verify : Action {
     let profile : ShellProfile
     
     func run() async throws {

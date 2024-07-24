@@ -1,7 +1,7 @@
 import Foundation
 
 enum NodePackageManager {
-  struct RunInstall : Command {
+  struct RunInstall : Action {
     let profile : ShellProfile
     func run() async throws {
       let command = """

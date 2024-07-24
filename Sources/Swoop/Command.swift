@@ -1,4 +1,4 @@
 
-protocol Command : Sendable {
+protocol Action : Sendable {
   func run () async throws
 }
