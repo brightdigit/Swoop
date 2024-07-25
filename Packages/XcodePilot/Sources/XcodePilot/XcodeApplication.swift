@@ -10,6 +10,29 @@ import ProcessExtensions
 @preconcurrency import XcodeScriptingBridge
 @preconcurrency import ScriptingBridge
 
+extension URL {
+    /// Finds the nearest parent URL that has the specified path extension.
+    /// - Parameter pathExtension: The path extension to look for.
+    /// - Returns: The nearest parent URL with the specified path extension, or `nil` if not found.
+    func findParent(withPathExtension pathExtension: String) -> URL? {
+        var currentURL = self.deletingLastPathComponent()
+        
+        while currentURL.path != "/" {
+            if currentURL.pathExtension == pathExtension {
+                // Remove the trailing slash if it exists
+                var path = currentURL.path
+                if path.hasSuffix("/") {
+                    path.removeLast()
+                }
+                return URL(fileURLWithPath: path)
+            }
+            currentURL.deleteLastPathComponent()
+        }
+        
+        return nil
+    }
+}
+
 //public struct RunDestinationQuery : Sendable {
 //  public init(id: String? = nil, name: String? = nil, platform: String? = nil, architecture: String? = nil) {
 //    self.id = id
@@ -206,20 +229,31 @@ public struct XcodeWorkspaceDocument : Sendable {
     environmentVariables: [String : String] = [:]
   ) async throws {
     
+    
     async let runDestination = try await Task{
-      let shellOutput = try await Process.execute(
-        "xcodebuild",
-        arguments: ["-project \(document.file!.lastPathComponent)","-scheme \(scheme)", "-showdestinations"],
-        currentDirectoryURL: document.file?.deletingLastPathComponent()
-      )
+    
+      guard let projectFileURL = document.file?.findParent(withPathExtension: "xcodeproj") else {
+        fatalError()
+      }
       
+      print("Getting Destinations...")
+      
+      let shellOutput = try await Process.execute(
+        "/usr/bin/xcodebuild",
+        arguments: ["-project", projectFileURL.path(),"-scheme", scheme, "-showdestinations"],
+        currentDirectoryURL: projectFileURL.deletingLastPathComponent()
+      )
       
       
       let destinations = Destination.parseFrom(output: shellOutput.output)
       
+      print("Parsed \(destinations.count) Destinations...")
+      
       let destination = destinations.first {
         destination.arch == $0.arch && destination.platform == $0.platform
       }
+      
+      print("Found Destination.")
       
       guard let destination else {
         fatalError()
@@ -251,15 +285,7 @@ public struct XcodeWorkspaceDocument : Sendable {
       environmentVariables: environmentVariables
     )
     
-    if let result {
-      let result = result as XcodeSchemeActionResult
-      print("Result found.")
-      
-      print(result.buildErrors)
-      print(result.buildLog)
-      print(result.status?.rawValue)
-     print(result.errorMessage)
-    }
+    
   }
 }
 

@@ -15,6 +15,7 @@ import ProcessExtensions
 
 struct XcodeGenAction : Action {
   func run() async throws {
+    print("Creating Xcode Project...")
     let version : Version = .init("2.42.0")!
     let specLoader = SpecLoader(version: version)
     let project: Project
@@ -147,6 +148,7 @@ struct ServerAction : ListAction {
   
 
   func execute() async throws {
+    print("Opening Xcode...")
     
     guard let application = XcodeApp(filePath: "/Applications/Xcode-beta.app") else {
       throw InternalError.missingEnvironmentVariable("/Applications/Xcode-beta.app")
