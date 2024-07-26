@@ -1,10 +1,9 @@
-
-protocol ListAction : Action {
-  var dependencies : [any Action] { get }
+protocol DependenciesCommand: Action {
+  var dependencies: [any Action] { get }
   func execute() async throws
 }
 
-extension ListAction {
+extension DependenciesCommand {
   func run() async throws {
     try await withThrowingTaskGroup(of: Void.self) { group in
       for dependency in self.dependencies {

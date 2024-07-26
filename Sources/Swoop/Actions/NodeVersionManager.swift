@@ -1,11 +1,11 @@
-import ProcessExtensions
 import Foundation
+import ProcessExtensions
 
 enum NodeVersionManager {
   static let commandName = "nvm"
-  
-  struct RunInstall : ListAction {
-    let profile : ShellProfile
+
+  struct RunInstall: DependenciesCommand {
+    let profile: ShellProfile
     let dependencies: [any Action]
     init(profile: ShellProfile) {
       self.profile = profile
@@ -15,15 +15,17 @@ enum NodeVersionManager {
     }
     func execute() async throws {
       print("Running nvm Install...")
-      try await Process.run(with: profile.interperter, inProfile: profile.profilePath, command: "nvm install", currentDirectoryURL: URL(filePath: "Web"))
+      try await Process.run(
+        with: profile.interperter, inProfile: profile.profilePath, command: "nvm install",
+        currentDirectoryURL: URL(filePath: "Web"))
     }
   }
-  
-  struct Verify : Action {
-    let profile : ShellProfile
-    
+
+  struct Verify: Action {
+    let profile: ShellProfile
+
     func run() async throws {
-      let result : ShellOutput
+      let result: ShellOutput
       result = try await Process.run(
         with: profile.interperter,
         inProfile: profile.profilePath,

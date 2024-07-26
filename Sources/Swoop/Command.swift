@@ -1,4 +1,3 @@
-
-protocol Action : Sendable {
-  func run () async throws
+protocol Action: Sendable {
+  func run() async throws
 }
