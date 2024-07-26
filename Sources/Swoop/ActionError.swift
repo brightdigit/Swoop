@@ -1,3 +1,3 @@
-enum CommandError : Error {
+enum ActionError: Error {
   case missingInstallation
 }

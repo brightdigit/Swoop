@@ -5,7 +5,6 @@
 //  Created by Leo Dion on 7/16/24.
 //
 
-
 package import ScriptingBridge
 
 @objc package protocol SBObjectProtocol: NSObjectProtocol {
@@ -27,9 +26,9 @@ package import ScriptingBridge
   @objc optional func clean() -> any XcodeSchemeActionResult
   @objc optional func stop()
   @objc optional func run(withCommandLineArguments: Any, withEnvironmentVariables: Any)
-  -> any XcodeSchemeActionResult
+    -> any XcodeSchemeActionResult
   @objc optional func test(withCommandLineArguments: Any, withEnvironmentVariables: Any)
-  -> any XcodeSchemeActionResult
+    -> any XcodeSchemeActionResult
   @objc optional func attachToProcessIdentifier(_ toProcessIdentifier: Int, suspended: Bool)
   @objc optional func debugScheme(
     _ scheme: String, runDestinationSpecifier: String, skipBuilding: Bool,
@@ -215,3 +214,6 @@ extension SBObject: XcodeWorkspaceDocument {}
 
 extension SBObject: XcodeRunDestination {}
 // Continue this pattern for the rest of the protocols
+extension SBObject: XcodeScheme {}
+
+extension SBObject: XcodeSchemeActionResult {}

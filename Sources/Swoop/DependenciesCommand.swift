@@ -1,7 +1,5 @@
-
-@available(*, deprecated, message: "Switch to List")
-protocol DependenciesCommand : Command {
-  var dependencies : [any Command] { get }
+protocol DependenciesCommand: Action {
+  var dependencies: [any Action] { get }
   func execute() async throws
 }
 
