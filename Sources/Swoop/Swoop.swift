@@ -5,8 +5,16 @@ import ProcessExtensions
 struct Swoop: AsyncParsableCommand {
   let shellProfile: ShellProfile = .init(interperter: "/bin/zsh", profilePath: "~/.zshrc")
 
-  mutating func run() async throws {
-    let action = WebAction(shellProfile: shellProfile)
-    try await action.run()
-  }
+
+  static let configuration: CommandConfiguration = CommandConfiguration(
+    subcommands: [Server.self]
+  )
+}
+
+struct Server: AsyncParsableCommand {
+  
+}
+
+struct App : AsyncParsableCommand {
+  
 }
