@@ -14,23 +14,28 @@ struct Destination: CustomStringConvertible {
     if let id = id {
       components.append("id:\(id)")
     }
+    
+    if let OS {
+      components.append("OS:\(OS)")
+    }
 
     components.append("name:\(name)")
 
     return components.joined(separator: ", ")
   }
-  internal init(
-    platform: String, arch: String? = nil, id: String? = nil, name: String, variant: String? = nil
+  public init(
+    platform: String, arch: String? = nil, id: String? = nil, name: String, OS: String? = nil, variant: String? = nil
   ) {
     self.platform = platform
     self.arch = arch
     self.id = id
     self.name = name
     self.variant = variant
+    self.OS = OS
   }
 
   private init?(
-    platform: String?, arch: String? = nil, id: String? = nil, name: String?, variant: String? = nil
+    platform: String?, arch: String? = nil, id: String? = nil, name: String?, OS : String? = nil, variant: String? = nil
   ) {
     guard let name, let platform else {
       return nil
@@ -40,6 +45,7 @@ struct Destination: CustomStringConvertible {
     self.id = id
     self.name = name
     self.variant = variant
+    self.OS = OS
   }
 
   static let destinationPrefix = "{ platform:"
@@ -61,6 +67,7 @@ struct Destination: CustomStringConvertible {
       var arch: String? = nil
       var id: String? = nil
       var name = ""
+      var OS : String? = nil
       var variant: String? = nil
 
       for component in components {
@@ -80,6 +87,8 @@ struct Destination: CustomStringConvertible {
             id = value
           case "name":
             name = value
+          case "OS":
+            OS = value
           case "variant":
             variant = value
           default:
@@ -89,7 +98,7 @@ struct Destination: CustomStringConvertible {
       }
 
       let destination = Destination(
-        platform: platform, arch: arch, id: id, name: name, variant: variant)
+        platform: platform, arch: arch, id: id, name: name, OS: OS, variant: variant)
       destinations.append(destination)
     }
 
@@ -107,6 +116,7 @@ struct Destination: CustomStringConvertible {
     var id: String? = nil
     var name: String? = nil
     var variant: String? = nil
+    var OS: String? = nil
 
     for component in components {
       let keyValue = component.split(separator: ":").map {
@@ -125,6 +135,8 @@ struct Destination: CustomStringConvertible {
           id = value
         case "name":
           name = value
+        case "OS":
+          OS = value
         case "variant":
           variant = value
         default:
@@ -141,4 +153,5 @@ struct Destination: CustomStringConvertible {
   let id: String?
   let name: String
   let variant: String?
+  let OS: String?
 }
